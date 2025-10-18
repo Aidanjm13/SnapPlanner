@@ -5,7 +5,7 @@ BASE_URL = "http://127.0.0.1:8000"
 def register_user(username, password, email=None):
     response = requests.post(
         f"{BASE_URL}/auth/register",
-        params={"username": username, "password": password, "email": email}
+        json={"username": username, "password": password, "email": email}
     )
     return response.json()
 
@@ -36,13 +36,13 @@ def get_events(token):
 if __name__ == "__main__":
     # 1. Register a test user
     try:
-        register_result = register_user("testuser", "testpass123")
+        register_result = register_user("testuser", "test123")
         print("Registration result:", register_result)
     except requests.exceptions.RequestException as e:
         print("Registration error (might already exist):", e)
 
     # 2. Login to get token
-    login_result = login_user("testuser", "testpass123")
+    login_result = login_user("testuser", "test123")
     print("\nLogin result:", login_result)
 
     if "access_token" in login_result:

@@ -16,6 +16,7 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 import logging
+import hashlib
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -36,8 +37,7 @@ if not SECRET_KEY:
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing - using SHA256 for simplicity
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 # AWS DynamoDB setup
@@ -75,6 +75,7 @@ class Event(BaseModel):
     start: str
     end: Optional[str] = None
     description: Optional[str] = None
+    tags: Optional[str] = None
 
 class UserCreate(BaseModel):
     username: str
@@ -105,10 +106,10 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Authentication functions
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    return get_password_hash(plain_password) == hashed_password
 
 def get_password_hash(password):
-    return pwd_context.hash(password)
+    return hashlib.sha256(password.encode()).hexdigest()
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
@@ -252,6 +253,21 @@ async def create_event(event: Event, current_user: User = Depends(get_current_us
     except ClientError as e:
         logger.error(f"Create event error: {e}")
         raise HTTPException(status_code=500, detail="Failed to create event")
+
+@app.delete("/events/{event_id}")
+async def delete_event(event_id: str, current_user: User = Depends(get_current_user)):
+    try:
+        table = dynamodb.Table('Events')
+        table.delete_item(
+            Key={
+                'user_id': current_user['username'],
+                'id': event_id
+            }
+        )
+        return {"message": "Event deleted successfully"}
+    except ClientError as e:
+        logger.error(f"Delete event error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete event")
 
 @app.post("/uploadfile/")
 async def create_upload_file(file: UploadFile, current_user: User = Depends(get_current_user)):

@@ -1,0 +1,62 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#calendar {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* Improve calendar day interactions */
+.fc-daygrid-day {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.fc-daygrid-day:hover {
+    background-color: #f8f9fa;
+}
+
+/* Highlight today's date */
+.fc-day-today {
+    background-color: rgba(0, 120, 231, 0.05) !important;
+}
+
+/* Improve event appearance */
+.fc-event {
+    cursor: pointer;
+    transition: transform 0.1s ease;
+    border-radius: 3px;
+}
+
+.fc-event:hover {
+    transform: scale(1.02);
+}
+
+.upload-preview {
+    max-width: 100%;
+    height: auto;
+    margin-top: 10px;
+}
+
+#uploadStatus {
+    padding: 10px;
+    border-radius: 4px;
+}
+
+#uploadStatus.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+#uploadStatus.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}

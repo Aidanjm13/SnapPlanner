@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication state - redirect to login if not authenticated
+    if (!auth.isLoggedIn()) {
+        window.location.href = '/static/login.html';
+        return;
+    }
+    
+    // Show calendar container if authenticated
+    document.getElementById('calendarContainer').style.display = 'block';
+
     // Initialize FullCalendar
     var calendarEl = document.getElementById('calendar');
     var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -8,7 +17,15 @@ document.addEventListener('DOMContentLoaded', function() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
-        events: '/events/',  // Fetch events from our API
+        events: {
+            url: '/events/',
+            extraParams: function() {
+                return {};
+            },
+            headers: function() {
+                return auth.getAuthHeaders();
+            }
+        },
         editable: true,
         selectable: true,
         // Handle clicks on dates
@@ -46,7 +63,11 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         // Handle event clicks
         eventClick: function(info) {
-            // Show event details
+            if (!auth.isLoggedIn()) {
+                alert('Please log in to view event details');
+                return;
+            }
+
             const event = info.event;
             document.getElementById('eventTitle').value = event.title;
             document.getElementById('eventDate').value = event.start ? event.start.toISOString().split('T')[0] : '';
@@ -72,8 +93,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+
+
     // Handle save event button click
     document.getElementById('saveEvent').addEventListener('click', function() {
+        if (!auth.isLoggedIn()) {
+            alert('Please log in to save events');
+            return;
+        }
+
         const title = document.getElementById('eventTitle').value;
         const date = document.getElementById('eventDate').value;
         const startTime = document.getElementById('eventStartTime').value;
@@ -85,41 +113,40 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Create event object
         const event = {
+            id: Date.now().toString(), // Generate a unique ID
             title: title,
             start: startTime ? `${date}T${startTime}` : date,
             end: endTime ? `${date}T${endTime}` : null,
             description: description
         };
 
-        // Send to server
         fetch('/events/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: auth.getAuthHeaders(),
             body: JSON.stringify(event)
         })
-        .then(response => response.json())
-        .then(data => {
-            // Close modal
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to save event');
+            }
+            return response.json();
+        })
+        .then(result => {
+            calendar.refetchEvents();
             var modal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
             modal.hide();
-            
-            // Clear form
-            document.getElementById('eventForm').reset();
-            
-            // Refresh calendar
-            calendar.refetchEvents();
-            
-            // Show success message
-            alert('Event created successfully!');
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error creating event: ' + error.message);
+            alert('Failed to save event. Please try again.');
         });
+    });
+
+    // Handle logout
+    document.getElementById('logoutButton').addEventListener('click', function() {
+        auth.logout();
+        window.location.href = '/static/login.html';
     });
 
     // Handle file upload
@@ -129,8 +156,19 @@ document.addEventListener('DOMContentLoaded', function() {
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const formData = new FormData();
+        if (!auth.isLoggedIn()) {
+            alert('Please log in to upload files');
+            return;
+        }
+        
         const fileInput = document.getElementById('imageFile');
+        if (!fileInput.files[0]) {
+            uploadStatus.innerHTML = 'Please select a file';
+            uploadStatus.className = 'error';
+            return;
+        }
+        
+        const formData = new FormData();
         formData.append('file', fileInput.files[0]);
 
         try {
@@ -139,17 +177,17 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const response = await fetch('/uploadfile/', {
                 method: 'POST',
+                headers: auth.getAuthHeaders(),
                 body: formData
             });
 
             const result = await response.json();
 
             if (response.ok) {
-                uploadStatus.innerHTML = 'File uploaded successfully! Processing events...';
+                uploadStatus.innerHTML = result.message || 'File uploaded successfully!';
                 uploadStatus.className = 'success';
-                
-                // Refresh calendar events
                 calendar.refetchEvents();
+                fileInput.value = '';
             } else {
                 throw new Error(result.detail || 'Upload failed');
             }

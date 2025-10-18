@@ -1,9 +1,30 @@
 body {
     background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.card {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.login-card {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    border: none;
+    margin-top: 2rem;
+}
+
+.login-card .card-title {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.login-form input {
+    border-radius: 4px;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    transition: border-color 0.3s ease;
+}
+
+.login-form input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
 }
 
 #calendar {

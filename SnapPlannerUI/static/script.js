@@ -601,6 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 uploadStatus.className = 'success';
                 calendar.refetchEvents();
                 fileInput.value = '';
+                console.log(result.event)
             } else {
                 throw new Error(result.detail || 'Upload failed');
             }

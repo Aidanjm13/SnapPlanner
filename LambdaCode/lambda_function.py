@@ -23,33 +23,59 @@ def lambda_handler(event, context):
     csv_data = convert_to_csv(response['Blocks'])
     
     # Send to Claude Haiku
-    prompt = f"Analyze this layout data:\n{csv_data}"
+    prompt = f"{csv_data}"
     
     est = timezone(timedelta(hours=-5))
     current_date = datetime.now(est).strftime('%Y-%m-%dT%H:%M:%S%z')
     debugLog = current_date
-    system_prompt = f'''You are a acting as a text processor that extracts the relavant dates from emails and other sources and returns them in a consistent format. No response should be generated other than the formatted data.
+    system_prompt = f'''You are a acting as a text processor that extracts the relavant dates from emails and other sources and returns them in a consistent format. No response should be provided other than the formatted data.
 
-The format should be in typical javascript object format:
+The format should be in typical json object format:
 [
 {{
-'startDate': '<EST start date of event %Y-%m-%dT%H:%M:%S%z>',
-'endDate': '<EST time end date of event %Y-%m-%dT%H:%M:%S%z>',
-'eventTitle': '<event title>',
-'eventDescription': '<event description>',
-'tags': '<list of relevant tags, "productivity", "recreation", "personal", "athletics", ect>'
+"startDate": "<EST start date of event %Y-%m-%dT%H:%M:%S%z>",
+"endDate": "<EST time end date of event %Y-%m-%dT%H:%M:%S%z>",
+"eventTitle": "<title of event>",
+"eventDescription": "<event description>",
+"tags": "<list of relevant tags, "productivity", "recreation", "personal", "athletics", ect>"
 }}
 ]
 
-The current date is {current_date}'''
+The current date is {current_date}
+'''
     
     bedrock_response = bedrock.invoke_model(
         modelId='anthropic.claude-3-haiku-20240307-v1:0',
         body=json.dumps({
             'anthropic_version': 'bedrock-2023-05-31',
-            'max_tokens': 1000,
+            'max_tokens': 1500,
             'temperature': 0.5,
             'system': system_prompt,
+            # 'tools': [{
+            #     'name': 'extract_events',
+            #     'description': 'Extract events from document text',
+            #     'input_schema': {
+            #         'type': 'object',
+            #         'properties': {
+            #             'events': {
+            #                 'type': 'array',
+            #                 'items': {
+            #                     'type': 'object',
+            #                     'properties': {
+            #                         'startDate': {'type': 'string', 'description': 'ISO format with EST timezone'},
+            #                         'endDate': {'type': 'string', 'description': 'ISO format with EST timezone'},
+            #                         'eventTitle': {'type': 'string'},
+            #                         'eventDescription': {'type': 'string'},
+            #                         'tags': {'type': 'array', 'items': {'type': 'string'}}
+            #                     },
+            #                     'required': ['startDate', 'endDate', 'eventTitle', 'eventDescription', 'tags']
+            #                 }
+            #             }
+            #         },
+            #         'required': ['events']
+            #     }
+            # }],
+            # 'tool_choice': {'type': 'tool', 'name': 'extract_events'},
             'messages': [{'role': 'user', 'content': prompt}]
         })
     )

@@ -57,25 +57,18 @@ def imageToEvents(image_path):
     print("Lambda result:", result)
     
     # Handle different response structures
-    try:
-        if isinstance(result.get('body'), str):
-            body = json.loads(result['body'])
-        else:
-            body = result.get('body', {})
+
+    if isinstance(result.get('body'), str):
+        events_text = result['body']
+    else:
+        events_text = json.dumps(result['body'])#['content'][0]['text']
+    print(events_text)
+
+    events = json.loads('{"events": ' + events_text + '}')
+
         
-        if 'content' in body and body['content']:
-            events_text = body['content'][0]['text']
-            events = json.loads('{"events": ' + events_text + '}')
-        else:
-            events = {"events": []}
-        
-        print("Parsed events:", events)
-        return events
-        
-    except (KeyError, IndexError, json.JSONDecodeError) as e:
-        print(f"Error parsing Lambda response: {e}")
-        print(f"Response structure: {result}")
-        return {"events": []}
+    print("Parsed events:", events)
+    return events
 
     try:
         # If on Windows, you might need to set the tesseract path

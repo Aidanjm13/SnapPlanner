@@ -5,7 +5,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Show calendar container if authenticated
+    // Show header bar and calendar container if authenticated
+    document.getElementById('headerBar').style.display = 'block';
     document.getElementById('calendarContainer').style.display = 'block';
 
     // Track current event being edited

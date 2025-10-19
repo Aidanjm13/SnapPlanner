@@ -563,6 +563,95 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = '/static/login.html';
     });
 
+    // Variables for one-by-one event processing
+    let extractedEvents = [];
+    let currentEventIndex = 0;
+    
+    // Function to show extracted events one by one
+    function showExtractedEvents(events) {
+        extractedEvents = events;
+        currentEventIndex = 0;
+        showCurrentEvent();
+    }
+    
+    // Function to display current event for approval
+    function showCurrentEvent() {
+        if (currentEventIndex >= extractedEvents.length) {
+            uploadStatus.innerHTML = 'All events processed!';
+            uploadStatus.className = 'success';
+            setTimeout(() => {
+                calendar.refetchEvents();
+                clearExtractedEvents();
+            }, 1500);
+            return;
+        }
+        
+        const event = extractedEvents[currentEventIndex];
+        const startDate = new Date(event.startDate).toLocaleDateString();
+        const startTime = new Date(event.startDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const endTime = event.endDate ? new Date(event.endDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+        
+        const html = `
+            <h6>Event ${currentEventIndex + 1} of ${extractedEvents.length}</h6>
+            <div class="card mb-2">
+                <div class="card-body p-2">
+                    <strong>${event.eventTitle}</strong><br>
+                    <small class="text-muted">${startDate} ${startTime}${endTime ? ' - ' + endTime : ''}</small><br>
+                    <small>${event.eventDescription}</small>
+                </div>
+            </div>
+            <div class="mt-2">
+                <button class="btn btn-success btn-sm" onclick="addCurrentEvent()">Add to Calendar</button>
+                <button class="btn btn-secondary btn-sm" onclick="skipCurrentEvent()">Skip</button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="clearExtractedEvents()">Cancel All</button>
+            </div>
+        `;
+        
+        uploadStatus.innerHTML = html;
+        uploadStatus.className = 'success';
+    }
+    
+    // Function to add current event and move to next
+    window.addCurrentEvent = function() {
+        const event = extractedEvents[currentEventIndex];
+        addEventToCalendar(event);
+        currentEventIndex++;
+        showCurrentEvent();
+    }
+    
+    // Function to skip current event and move to next
+    window.skipCurrentEvent = function() {
+        currentEventIndex++;
+        showCurrentEvent();
+    }
+    
+    // Function to add individual event to calendar
+    function addEventToCalendar(extractedEvent) {
+        const event = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            title: extractedEvent.eventTitle,
+            start: extractedEvent.startDate,
+            end: extractedEvent.endDate || null,
+            description: extractedEvent.eventDescription || '',
+            tags: extractedEvent.tags ? extractedEvent.tags.join(', ') : ''
+        };
+        
+        fetch('/events/', {
+            method: 'POST',
+            headers: auth.getAuthHeaders(),
+            body: JSON.stringify(event)
+        })
+        .catch(error => {
+            console.error('Error adding event:', error);
+        });
+    }
+    
+    // Function to clear extracted events display
+    window.clearExtractedEvents = function() {
+        uploadStatus.innerHTML = '';
+        uploadStatus.className = '';
+    }
+
     // Handle file upload
     const uploadForm = document.getElementById('uploadForm');
     const uploadStatus = document.getElementById('uploadStatus');
@@ -607,9 +696,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.ok) {
                 uploadStatus.innerHTML = result.message || 'File uploaded successfully!';
                 uploadStatus.className = 'success';
-                calendar.refetchEvents();
                 fileInput.value = '';
-                console.log(result.event)
+                
+                // Show extracted events for user selection
+                if (result.events && result.events.length > 0) {
+                    showExtractedEvents(result.events);
+                }
             } else {
                 throw new Error(result.detail || 'Upload failed');
             }

@@ -32,7 +32,6 @@ body {
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: opacity 0.2s ease-in-out;
 }
 
 /* Improve calendar day interactions */
@@ -54,7 +53,7 @@ body {
 .fc-event {
     cursor: pointer;
     transition: transform 0.1s ease;
-    border-radius: 3px;
+    border-radius: 1px;
 }
 
 .fc-event:hover {
@@ -85,7 +84,7 @@ body {
 /* White stroke for SNAPlanner title */
 .navbar-brand + div span {
     -webkit-text-stroke: 2px white;
-    text-stroke: 2px white;
+    text-stroke: 3px white;
 }
 
 /* Dark mode styles */
@@ -135,3 +134,44 @@ body {
     border-color: #007bff;
     color: #e0e0e0;
 }
+
+[data-theme="dark"] .fc-col-header-cell-cushion,
+[data-theme="dark"] .fc-daygrid-day-number,
+[data-theme="dark"] .fc-button-primary,
+[data-theme="dark"] .fc-toolbar-title,
+[data-theme="dark"] .fc-daygrid-day-top,
+[data-theme="dark"] .fc-day-number,
+[data-theme="dark"] .fc-col-header-cell a {
+    color: #87ceeb !important;
+}
+
+[data-theme="dark"] .fc-button-primary {
+    background-color: #4a90e2 !important;
+    border-color: #4a90e2 !important;
+}
+
+[data-theme="dark"] .fc-button-primary:hover {
+    background-color: #357abd !important;
+    border-color: #357abd !important;
+}
+
+[data-theme="dark"] .fc-event-title,
+[data-theme="dark"] .fc-event-time {
+    color: #87ceeb !important;
+}
+
+#pasteArea {
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+#pasteArea:focus {
+    background-color: #f0f8ff;
+    border-color: #007bff;
+    outline: none;
+}
+
+[data-theme="dark"] #pasteArea:focus {
+    background-color: #2a3a4a;
+    border-color: #4a90e2;
+}
+

@@ -84,13 +84,8 @@ document.addEventListener('DOMContentLoaded', function() {
         navLinks: true, // Enable clicking on day/week numbers
         nowIndicator: true, // Show current time indicator
         dayMaxEvents: true, // Allow "more" link when too many events
-        // Customize the view switching animations
+        // Update summary when view changes
         viewDidMount: function(info) {
-            info.el.style.opacity = '0';
-            setTimeout(function() {
-                info.el.style.opacity = '1';
-            }, 0);
-            
             // Update the summary based on the current view
             updateViewSummary(info.view.type);
         },
@@ -531,6 +526,8 @@ document.addEventListener('DOMContentLoaded', function() {
             adjustTime(target, minutes);
         });
     });
+    
+
 
     // Handle delete event button click
     document.getElementById('deleteEvent').addEventListener('click', function() {
@@ -883,4 +880,6 @@ document.addEventListener('DOMContentLoaded', function() {
         currentReviewIndex++;
         showCurrentReviewEvent();
     });
+    
+
 });

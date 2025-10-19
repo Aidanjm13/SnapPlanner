@@ -588,14 +588,21 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             uploadStatus.innerHTML = 'Uploading and processing image...';
             uploadStatus.className = '';
+
+            console.log('Auth headers:', auth.getAuthHeaders());
+            // Try different common token keys
+            const token = localStorage.getItem('access_token') || 
+              localStorage.getItem('authToken') || 
+              sessionStorage.getItem('token') ||
+              localStorage.getItem('token');
             
-            const response = await fetch('/uploadfile/', {
+            const response = await fetch(`/uploadfile/?token=${token}`, {
                 method: 'POST',
-                headers: auth.getAuthHeaders(),
                 body: formData
             });
 
             const result = await response.json();
+            console.log(result)
 
             if (response.ok) {
                 uploadStatus.innerHTML = result.message || 'File uploaded successfully!';

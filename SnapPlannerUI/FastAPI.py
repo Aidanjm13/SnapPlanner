@@ -271,7 +271,16 @@ async def delete_event(event_id: str, current_user: User = Depends(get_current_u
         raise HTTPException(status_code=500, detail="Failed to delete event")
 
 @app.post("/uploadfile/")
-async def create_upload_file(file: UploadFile, current_user: User = Depends(get_current_user)):
+async def create_upload_file(file: UploadFile = File(...), token: str = None):
+    # Validate token if provided
+    if token:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username = payload.get("sub")
+            if not username:
+                raise HTTPException(status_code=401, detail="Invalid token")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
     if not file:
         raise HTTPException(status_code=400, detail="No file provided")
     
@@ -287,9 +296,9 @@ async def create_upload_file(file: UploadFile, current_user: User = Depends(get_
         
         try:
             # Save uploaded file
-            # content = await file.read()
-            # with open(file_path, "wb") as buffer:
-            #     buffer.write(content)
+            content = await file.read()
+            with open(file_path, "wb") as buffer:
+                buffer.write(content)
             
             # Process image (placeholder - implement your image processing)
             # text = extract_text_from_image(file_path)

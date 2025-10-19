@@ -96,7 +96,7 @@ app = FastAPI(title="SnapPlanner API", version="1.0.0")
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8000", "http://127.0.0.1:8000"],
+    allow_origins=["*"],  # Allow all origins for public access
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
@@ -328,4 +328,4 @@ async def create_upload_file(file: UploadFile = File(...), token: str = None):
         raise HTTPException(status_code=500, detail="File processing failed")
 
 if __name__ == "__main__":
-    uvicorn.run("FastAPI:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("FastAPI:app", host="0.0.0.0", port=80, reload=False)

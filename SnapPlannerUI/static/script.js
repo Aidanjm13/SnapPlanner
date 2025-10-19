@@ -563,6 +563,28 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = '/static/login.html';
     });
 
+    // Dark mode toggle
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    
+    if (isDarkMode) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        darkModeToggle.textContent = '☀️';
+    }
+    
+    darkModeToggle.addEventListener('click', function() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        if (currentTheme === 'dark') {
+            document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('darkMode', 'false');
+            darkModeToggle.textContent = '🌙';
+        } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('darkMode', 'true');
+            darkModeToggle.textContent = '☀️';
+        }
+    });
+
     // Variables for one-by-one event processing
     let extractedEvents = [];
     let currentEventIndex = 0;
@@ -678,12 +700,7 @@ document.addEventListener('DOMContentLoaded', function() {
             uploadStatus.innerHTML = 'Uploading and processing image...';
             uploadStatus.className = '';
 
-            console.log('Auth headers:', auth.getAuthHeaders());
-            // Try different common token keys
-            const token = localStorage.getItem('access_token') || 
-              localStorage.getItem('authToken') || 
-              sessionStorage.getItem('token') ||
-              localStorage.getItem('token');
+            const token = localStorage.getItem('authToken');
             
             const response = await fetch(`/uploadfile/?token=${token}`, {
                 method: 'POST',
@@ -700,7 +717,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Show extracted events for user selection
                 if (result.events && result.events.length > 0) {
-                    showExtractedEvents(result.events);
+                    showEventReview(result.events);
+                } else {
+                    uploadStatus.innerHTML = 'No events detected in the file.';
                 }
             } else {
                 throw new Error(result.detail || 'Upload failed');
@@ -709,5 +728,159 @@ document.addEventListener('DOMContentLoaded', function() {
             uploadStatus.innerHTML = 'Error: ' + error.message;
             uploadStatus.className = 'error';
         }
+    });
+
+    // Handle image paste
+    const pasteArea = document.getElementById('pasteArea');
+    
+    pasteArea.addEventListener('paste', async (e) => {
+        e.preventDefault();
+        const items = e.clipboardData.items;
+        
+        for (let item of items) {
+            if (item.type.indexOf('image') !== -1) {
+                const file = item.getAsFile();
+                await processFile(file);
+                break;
+            }
+        }
+    });
+    
+    // Make paste area focusable
+    pasteArea.setAttribute('tabindex', '0');
+    pasteArea.addEventListener('click', () => pasteArea.focus());
+    
+    async function processFile(file) {
+        if (!auth.isLoggedIn()) {
+            alert('Please log in to upload files');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            uploadStatus.innerHTML = 'Processing pasted image...';
+            uploadStatus.className = '';
+            
+            const response = await fetch(`/uploadfile/?token=${localStorage.getItem('authToken')}`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                uploadStatus.innerHTML = result.message || 'File processed successfully!';
+                uploadStatus.className = 'success';
+                
+                // Show extracted events for user selection
+                if (result.events && result.events.length > 0) {
+                    showEventReview(result.events);
+                } else {
+                    uploadStatus.innerHTML = 'No events detected in the file.';
+                    calendar.refetchEvents();
+                }
+            } else {
+                throw new Error(result.detail || 'Processing failed');
+            }
+        } catch (error) {
+            uploadStatus.innerHTML = 'Error: ' + error.message;
+            uploadStatus.className = 'error';
+        }
+    }
+
+    // Event review modal functions
+    let reviewEvents = [];
+    let currentReviewIndex = 0;
+    
+    function showEventReview(events) {
+        reviewEvents = events;
+        currentReviewIndex = 0;
+        showCurrentReviewEvent();
+        
+        const modal = new bootstrap.Modal(document.getElementById('reviewModal'));
+        modal.show();
+    }
+    
+    function showCurrentReviewEvent() {
+        if (currentReviewIndex >= reviewEvents.length) {
+            // All events processed
+            const modal = bootstrap.Modal.getInstance(document.getElementById('reviewModal'));
+            modal.hide();
+            calendar.refetchEvents();
+            uploadStatus.innerHTML = 'Event review completed!';
+            uploadStatus.className = 'success';
+            return;
+        }
+        
+        const event = reviewEvents[currentReviewIndex];
+        const startDate = new Date(event.startDate);
+        const endDate = event.endDate ? new Date(event.endDate) : null;
+        
+        // Update progress
+        document.getElementById('eventProgress').innerHTML = 
+            `<div class="progress mb-2">
+                <div class="progress-bar" style="width: ${((currentReviewIndex + 1) / reviewEvents.length) * 100}%"></div>
+            </div>
+            <small class="text-muted">Event ${currentReviewIndex + 1} of ${reviewEvents.length}</small>`;
+        
+        // Show current event
+        document.getElementById('currentEvent').innerHTML = `
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">${event.eventTitle}</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Start Date & Time</label>
+                            <input type="datetime-local" class="form-control" id="reviewStartDate" value="${startDate.toISOString().slice(0,16)}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Date & Time</label>
+                            <input type="datetime-local" class="form-control" id="reviewEndDate" value="${endDate ? endDate.toISOString().slice(0,16) : ''}">
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" rows="2" id="reviewDescription">${event.eventDescription || ''}</textarea>
+                    </div>
+                    <div class="mt-2">
+                        <label class="form-label">Tags</label>
+                        <input type="text" class="form-control" id="reviewTags" value="${event.tags ? (Array.isArray(event.tags) ? event.tags.join(', ') : event.tags) : ''}">
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Handle accept event button
+    document.getElementById('acceptEvent').addEventListener('click', function() {
+        const event = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            title: reviewEvents[currentReviewIndex].eventTitle,
+            start: document.getElementById('reviewStartDate').value,
+            end: document.getElementById('reviewEndDate').value || null,
+            description: document.getElementById('reviewDescription').value,
+            tags: document.getElementById('reviewTags').value
+        };
+        
+        fetch('/events/', {
+            method: 'POST',
+            headers: auth.getAuthHeaders(),
+            body: JSON.stringify(event)
+        })
+        .then(response => {
+            if (response.ok) {
+                currentReviewIndex++;
+                showCurrentReviewEvent();
+            }
+        })
+        .catch(error => console.error('Error adding event:', error));
+    });
+    
+    // Handle remove event button
+    document.getElementById('removeEvent').addEventListener('click', function() {
+        currentReviewIndex++;
+        showCurrentReviewEvent();
     });
 });

@@ -51,15 +51,31 @@ def imageToEvents(image_path):
         Payload=json.dumps(test_event)
     )
 
-
+    print(response)
     
     result = json.loads(response['Payload'].read())
-    # print(result)
-
-    events = json.loads('{"events": '+result['body'] + '}')
-    print(events)
+    print("Lambda result:", result)
     
-    return events
+    # Handle different response structures
+    try:
+        if isinstance(result.get('body'), str):
+            body = json.loads(result['body'])
+        else:
+            body = result.get('body', {})
+        
+        if 'content' in body and body['content']:
+            events_text = body['content'][0]['text']
+            events = json.loads('{"events": ' + events_text + '}')
+        else:
+            events = {"events": []}
+        
+        print("Parsed events:", events)
+        return events
+        
+    except (KeyError, IndexError, json.JSONDecodeError) as e:
+        print(f"Error parsing Lambda response: {e}")
+        print(f"Response structure: {result}")
+        return {"events": []}
 
     try:
         # If on Windows, you might need to set the tesseract path
@@ -72,6 +88,8 @@ def imageToEvents(image_path):
         return text
     except Exception as e:
         raise Exception(f"Error processing image with Tesseract OCR: {str(e)}")
+    
+
 
 def parse_date_time(text):
     """Try to parse date and time from text"""

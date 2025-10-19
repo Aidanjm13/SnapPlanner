@@ -34,6 +34,7 @@
                 <span style="font-weight: bold; font-size: 3rem;">SNAP</span><span style="font-weight: 300; font-size: 3rem;">lanner</span>
             </div>
             <div class="ms-auto">
+                <button id="darkModeToggle" class="btn btn-outline-light me-2">🌙</button>
                 <button id="logoutButton" class="btn btn-outline-light">Logout</button>
             </div>
         </div>
@@ -45,14 +46,19 @@
             <div class="col-md-3">
                 <div class="card mb-3">
                     <div class="card-body">
-                        <h5 class="card-title">Upload Image</h5>
+                        <h5 class="card-title">Upload File</h5>
                         <form id="uploadForm" enctype="multipart/form-data">
                             <div class="mb-3">
-                                <label for="imageFile" class="form-label">Choose an image of your syllabus or event</label>
-                                <input class="form-control" type="file" id="imageFile" name="file" accept="image/*">
+                                <label for="imageFile" class="form-label">Choose an image or PDF of your syllabus or event</label>
+                                <input class="form-control" type="file" id="imageFile" name="file" accept="image/*,application/pdf">
                             </div>
                             <button type="submit" class="btn btn-primary">Upload & Process</button>
                         </form>
+                        <div class="mt-3 text-center">
+                            <div class="border border-dashed border-secondary rounded p-3" id="pasteArea" style="cursor: pointer; min-height: 80px; display: flex; align-items: center; justify-content: center;">
+                                <span class="text-muted">or paste image here</span>
+                            </div>
+                        </div>
                         <div id="uploadStatus" class="mt-3"></div>
                     </div>
                 </div>
@@ -144,6 +150,27 @@
                     <button type="button" class="btn btn-danger" id="deleteEvent" style="display: none;">Delete Event</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" id="saveEvent">Save Event</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Review Modal -->
+    <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reviewModalLabel">Review Detected Events</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="eventProgress" class="mb-3"></div>
+                    <div id="currentEvent"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="acceptEvent">Accept & Add</button>
+                    <button type="button" class="btn btn-danger" id="removeEvent">Remove</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel All</button>
                 </div>
             </div>
         </div>

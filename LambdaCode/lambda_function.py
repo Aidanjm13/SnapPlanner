@@ -1,26 +1,42 @@
 import json
 import boto3
 import base64
-from io import StringIO
+from io import StringIO, BytesIO
 import csv
 from datetime import datetime, timezone, timedelta
+import PyPDF2
 
 def lambda_handler(event, context):
     # Initialize AWS clients
     textract = boto3.client('textract', region_name='us-east-1')
     bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
     
+
+    body = event['body']
+    if 'image' in body:
+        type = 'image'
+    if 'pdf' in body:
+        type = 'pdf'
+        
     # Get image from API request
-    image_data = base64.b64decode(event['body']['image'])
+    req_data = base64.b64decode(body[type])
     
-    # Extract layout with Textract
-    response = textract.analyze_document(
-        Document={'Bytes': image_data},
-        FeatureTypes=['LAYOUT']
-    )
-    
-    # Convert to CSV
-    csv_data = convert_to_csv(response['Blocks'])
+    # Extract text based on file type
+    if type == 'pdf':
+        # For PDFs, extract raw text using PyPDF2
+        pdf_reader = PyPDF2.PdfReader(BytesIO(req_data))
+        text_content = ""
+        for page in pdf_reader.pages:
+            text_content += page.extract_text() + "\n"
+        csv_data = text_content
+    else:
+        # For images, use analyze_document with layout
+        response = textract.analyze_document(
+            Document={'Bytes': req_data},
+            FeatureTypes=['LAYOUT']
+        )
+        # Convert to CSV
+        csv_data = convert_to_csv(response['Blocks'])
     
     # Send to Claude Haiku
     prompt = f"{csv_data}"
@@ -36,19 +52,20 @@ The format should be in typical json object format:
 "startDate": "<EST start date of event %Y-%m-%dT%H:%M:%S%z>",
 "endDate": "<EST time end date of event %Y-%m-%dT%H:%M:%S%z>",
 "eventTitle": "<title of event>",
-"eventDescription": "<event description>",
+"eventDescription": "<short event description>",
 "tags": "<list of relevant tags, "productivity", "recreation", "personal", "athletics", ect>"
 }}
 ]
 
 The current date is {current_date}
+Make sure to find ALL events and important deadlines.
 '''
     
     bedrock_response = bedrock.invoke_model(
         modelId='anthropic.claude-3-haiku-20240307-v1:0',
         body=json.dumps({
             'anthropic_version': 'bedrock-2023-05-31',
-            'max_tokens': 1500,
+            'max_tokens': 2500,
             'temperature': 0.5,
             'system': system_prompt,
             # 'tools': [{

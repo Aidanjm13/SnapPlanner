@@ -17,6 +17,7 @@ from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 import logging
 import image_processor
+import pdf_processor
 import hashlib
 
 # Configure logging
@@ -286,8 +287,8 @@ async def create_upload_file(file: UploadFile = File(...), token: str = None):
     
     try:
         # Validate file type
-        if not file.content_type.startswith('image/'):
-            raise HTTPException(status_code=400, detail="File must be an image")
+        if not (file.content_type.startswith('image/') or file.content_type == 'application/pdf'):
+            raise HTTPException(status_code=400, detail="File must be an image or PDF")
         
         # Create unique filename
         file_extension = os.path.splitext(file.filename)[1]
@@ -300,11 +301,11 @@ async def create_upload_file(file: UploadFile = File(...), token: str = None):
             with open(file_path, "wb") as buffer:
                 buffer.write(content)
             
-            # Process image (placeholder - implement your image processing)
-            # text = extract_text_from_image(file_path)
-            # events = extract_events_from_text(text)
-
-            events = image_processor.imageToEvents(file_path)['events']
+            # Process file based on type
+            if file.content_type == 'application/pdf':
+                events = pdf_processor.pdfToEvents(file_path)['events']
+            else:
+                events = image_processor.imageToEvents(file_path)['events']
 
             os.remove(file_path)
             
@@ -325,6 +326,8 @@ async def create_upload_file(file: UploadFile = File(...), token: str = None):
         raise
     except Exception as e:
         logger.error(f"File upload error: {e}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail="File processing failed")
 
 if __name__ == "__main__":

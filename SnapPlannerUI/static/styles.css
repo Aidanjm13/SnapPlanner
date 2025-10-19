@@ -81,3 +81,57 @@ body {
     background-color: #f8d7da;
     color: #721c24;
 }
+
+/* White stroke for SNAPlanner title */
+.navbar-brand + div span {
+    -webkit-text-stroke: 2px white;
+    text-stroke: 2px white;
+}
+
+/* Dark mode styles */
+[data-theme="dark"] {
+    --bs-body-bg: #1a1a1a;
+    --bs-body-color: #e0e0e0;
+}
+
+[data-theme="dark"] body {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .card {
+    background-color: #2d2d2d;
+    border-color: #404040;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] #calendar {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .fc-theme-standard td,
+[data-theme="dark"] .fc-theme-standard th {
+    border-color: #404040;
+}
+
+[data-theme="dark"] .fc-daygrid-day:hover {
+    background-color: #404040;
+}
+
+[data-theme="dark"] .modal-content {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .form-control {
+    background-color: #404040;
+    border-color: #555;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .form-control:focus {
+    background-color: #404040;
+    border-color: #007bff;
+    color: #e0e0e0;
+}

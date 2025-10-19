@@ -43,17 +43,38 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 # AWS DynamoDB setup
+# try:
+#     dynamodb = boto3.resource('dynamodb',
+#         aws_access_key_id=AWS_ACCESS_KEY,
+#         aws_secret_access_key=AWS_SECRET_KEY,
+#         aws_session_token=os.getenv('AWS_SESSION_TOKEN'),
+#         region_name=AWS_REGION,
+#         config=Config(retries=dict(max_attempts=2))
+#     )
+# except Exception as e:
+#     logger.error(f"Failed to initialize DynamoDB: {e}")
+#     raise
+
+# AWS DynamoDB setup
 try:
-    dynamodb = boto3.resource('dynamodb',
-        aws_access_key_id=AWS_ACCESS_KEY,
-        aws_secret_access_key=AWS_SECRET_KEY,
-        aws_session_token=os.getenv('AWS_SESSION_TOKEN'),
-        region_name=AWS_REGION,
-        config=Config(retries=dict(max_attempts=2))
-    )
+    # Use IAM role credentials on EC2, fallback to env vars for local dev
+    if AWS_ACCESS_KEY and AWS_SECRET_KEY:
+        dynamodb = boto3.resource('dynamodb',
+            aws_access_key_id=AWS_ACCESS_KEY,
+            aws_secret_access_key=AWS_SECRET_KEY,
+            region_name=AWS_REGION,
+            config=Config(retries=dict(max_attempts=2))
+        )
+    else:
+        # Use default credential chain (IAM role on EC2)
+        dynamodb = boto3.resource('dynamodb',
+            region_name=AWS_REGION,
+            config=Config(retries=dict(max_attempts=2))
+        )
 except Exception as e:
     logger.error(f"Failed to initialize DynamoDB: {e}")
     raise
+
 
 # Models
 class Token(BaseModel):

@@ -16,6 +16,7 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 import logging
+import image_processor
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -270,18 +271,21 @@ async def create_upload_file(file: UploadFile, current_user: User = Depends(get_
         
         try:
             # Save uploaded file
-            content = await file.read()
-            with open(file_path, "wb") as buffer:
-                buffer.write(content)
+            # content = await file.read()
+            # with open(file_path, "wb") as buffer:
+            #     buffer.write(content)
             
             # Process image (placeholder - implement your image processing)
             # text = extract_text_from_image(file_path)
             # events = extract_events_from_text(text)
+
+            events = image_processor.imageToEvents(file_path)['events']
+
+            os.remove(file_path)
             
             return JSONResponse(content={
-                "filename": file.filename,
                 "status": "File uploaded successfully",
-                "message": "Image processing feature needs implementation"
+                "events": events
             })
             
         finally:

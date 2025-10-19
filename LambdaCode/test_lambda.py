@@ -11,7 +11,7 @@ def test_lambda():
     lambda_client = boto3.client('lambda', region_name='us-east-1')
     
     # Load and compress image if needed
-    with open('SampleImages/IMG_4653.jpg', 'rb') as f:
+    with open('SampleImages/IMG_4652.jpg', 'rb') as f:
         image_data = f.read()
     
     # Compress if too large (6MB limit - 1.5MB buffer for JSON overhead)
@@ -47,9 +47,12 @@ def test_lambda():
     )
     
     result = json.loads(response['Payload'].read())
-    print("Lambda Response:", result)
+    # print(result)
+
+    events = json.loads('{"events": '+result['body'] + '}')
+    # print(events)
     
-    return result
+    return events
 
 if __name__ == "__main__":
     test_lambda()

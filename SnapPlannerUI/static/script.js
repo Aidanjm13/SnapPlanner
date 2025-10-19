@@ -90,8 +90,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 info.el.style.opacity = '1';
             }, 0);
             
-            // Update the add event button visibility based on the current view
-            updateAddEventButtonVisibility(info.view.type);
+            // Update the summary based on the current view
+            updateViewSummary(info.view.type);
         },
         // Update summary when date range changes (navigation arrows)
         datesSet: function(info) {
@@ -141,16 +141,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     calendar.render();
     
-    // Function to update add event button visibility
-    function updateAddEventButtonVisibility(viewType) {
-        const addEventHint = document.getElementById('addEventHint');
-        if (viewType === 'dayGridMonth') {
-            addEventHint.textContent = 'Click on a day to view its week';
-            addEventHint.style.color = '#666';
-        } else {
-            addEventHint.textContent = 'Click anywhere on the calendar to add an event';
-            addEventHint.style.color = '#28a745';
-        }
+    // Function to update summary when view changes
+    function updateViewSummary(viewType) {
         updateSummary(viewType);
     }
 

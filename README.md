@@ -19,7 +19,7 @@ A simple and efficient calendar web application. Add events manually or take pic
    ```
 
 2. **Configure AWS credentials:**
-   - Update `.env` files with your AWS credentials
+   - Create `.env` files within SnapPlannerUI folder with your AWS and JWT credentials
    - Never commit real credentials to version control
 
 3. **Setup DynamoDB tables:**

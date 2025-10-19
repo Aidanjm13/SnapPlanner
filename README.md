@@ -1,16 +1,17 @@
 # SnapPlanner
 
-A calendar web application with AWS Cognito authentication and DynamoDB storage.
+A simple and efficient calendar web application. Add events manually or take pictures of event posters to automatically put events on your calendar. Get a summary of the type of events your calendar is filled with to better understand how you are spending your time. 
 
 ## Features
 
 - User authentication with JWT tokens
 - Event management (create, view, edit)
 - Calendar interface with FullCalendar
-- Image upload for event extraction
+- Image upload for AI event extraction
 - AWS DynamoDB integration
+- Calendar summary statistics
 
-## Setup
+## Running On Local Device
 
 1. **Install dependencies:**
    ```bash
@@ -18,7 +19,7 @@ A calendar web application with AWS Cognito authentication and DynamoDB storage.
    ```
 
 2. **Configure AWS credentials:**
-   - Update `.env` files with your AWS credentials
+   - Create `.env` files within SnapPlannerUI folder with your AWS and JWT credentials
    - Never commit real credentials to version control
 
 3. **Setup DynamoDB tables:**
@@ -42,25 +43,3 @@ A calendar web application with AWS Cognito authentication and DynamoDB storage.
 - JWT tokens expire after 30 minutes
 - CORS is configured for localhost only
 - Input validation on all API endpoints
-
-## API Endpoints
-
-- `POST /auth/token` - Login
-- `POST /auth/register` - Register new user
-- `GET /events/` - Get user events
-- `POST /events/` - Create new event
-- `POST /uploadfile/` - Upload image for processing
-
-## Project Structure
-
-```
-SnapPlanner/
-├── SnapPlannerUI/
-│   ├── static/          # Frontend files
-│   ├── uploads/         # Temporary file storage
-│   ├── FastAPI.py       # Main backend application
-│   ├── setup_db.py      # Database setup script
-│   └── .env             # Environment variables
-├── requirements.txt     # Python dependencies
-└── README.md           # This file
-```

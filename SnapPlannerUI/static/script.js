@@ -583,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
+        formData.append('file', fileInput.files[0], fileInput.files[0].name);
 
         try {
             uploadStatus.innerHTML = 'Uploading and processing image...';
@@ -591,7 +591,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const response = await fetch('/uploadfile/', {
                 method: 'POST',
-                headers: auth.getAuthHeaders(),
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                },
                 body: formData
             });
 

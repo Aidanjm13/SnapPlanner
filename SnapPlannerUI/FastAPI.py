@@ -271,37 +271,30 @@ async def delete_event(event_id: str, current_user: User = Depends(get_current_u
         raise HTTPException(status_code=500, detail="Failed to delete event")
 
 @app.post("/uploadfile/")
-async def create_upload_file(file: UploadFile, current_user: User = Depends(get_current_user)):
+async def create_upload_file(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
     if not file:
         raise HTTPException(status_code=400, detail="No file provided")
     
     try:
         # Validate file type
-        if not file.content_type.startswith('image/'):
+        if not file.content_type or not file.content_type.startswith('image/'):
             raise HTTPException(status_code=400, detail="File must be an image")
         
         # Create unique filename
-        file_extension = os.path.splitext(file.filename)[1]
+        file_extension = os.path.splitext(file.filename or 'upload.jpg')[1]
         unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}{file_extension}"
         file_path = os.path.join(UPLOAD_DIR, unique_filename)
         
         try:
             # Save uploaded file
-            # content = await file.read()
-            # with open(file_path, "wb") as buffer:
-            #     buffer.write(content)
-            
-            # Process image (placeholder - implement your image processing)
-            # text = extract_text_from_image(file_path)
-            # events = extract_events_from_text(text)
-
-            events = image_processor.imageToEvents(file_path)['events']
-
-            os.remove(file_path)
+            content = await file.read()
+            with open(file_path, "wb") as buffer:
+                buffer.write(content)
             
             return JSONResponse(content={
+                "filename": file.filename,
                 "status": "File uploaded successfully",
-                "events": events
+                "message": "Image processing feature needs implementation"
             })
             
         finally:

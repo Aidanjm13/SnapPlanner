@@ -694,8 +694,9 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('file', fileInput.files[0]);
 
         try {
-            uploadStatus.innerHTML = 'Uploading and processing image...';
+            uploadStatus.innerHTML = '';
             uploadStatus.className = '';
+            document.getElementById('loadingSpinner').style.display = 'block';
 
             const token = localStorage.getItem('authToken');
             
@@ -708,6 +709,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(result)
 
             if (response.ok) {
+                document.getElementById('loadingSpinner').style.display = 'none';
                 uploadStatus.innerHTML = result.message || 'File uploaded successfully!';
                 uploadStatus.className = 'success';
                 fileInput.value = '';
@@ -722,6 +724,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(result.detail || 'Upload failed');
             }
         } catch (error) {
+            document.getElementById('loadingSpinner').style.display = 'none';
             uploadStatus.innerHTML = 'Error: ' + error.message;
             uploadStatus.className = 'error';
         }
@@ -757,8 +760,9 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('file', file);
         
         try {
-            uploadStatus.innerHTML = 'Processing pasted image...';
+            uploadStatus.innerHTML = '';
             uploadStatus.className = '';
+            document.getElementById('loadingSpinner').style.display = 'block';
             
             const response = await fetch(`/uploadfile/?token=${localStorage.getItem('authToken')}`, {
                 method: 'POST',
@@ -768,6 +772,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             
             if (response.ok) {
+                document.getElementById('loadingSpinner').style.display = 'none';
                 uploadStatus.innerHTML = result.message || 'File processed successfully!';
                 uploadStatus.className = 'success';
                 
@@ -782,6 +787,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(result.detail || 'Processing failed');
             }
         } catch (error) {
+            document.getElementById('loadingSpinner').style.display = 'none';
             uploadStatus.innerHTML = 'Error: ' + error.message;
             uploadStatus.className = 'error';
         }

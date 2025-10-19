@@ -11,6 +11,10 @@ A simple and efficient calendar web application. Add events manually or take pic
 - AWS DynamoDB integration
 - Calendar summary statistics
 
+## Running in Web Browser (if still up on server)
+
+http://ec2-54-209-188-7.compute-1.amazonaws.com
+
 ## Running On Local Device
 
 1. **Install dependencies:**
